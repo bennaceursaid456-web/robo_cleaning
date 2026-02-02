@@ -37,41 +37,41 @@ cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 def generate_frames():
     """
-    Robust MJPEG stream generator.
-    NEVER breaks the stream.
-    Survives camera hiccups and model errors.
+    Robust MJPEG stream generator with frame skipping for performance.
     """
+    frame_count = 0
+    detections = []
+    
     while True:
         try:
             success, frame = cap.read()
 
-            # ❗ NEVER break a streaming generator
             if not success or frame is None:
-                time.sleep(0.05)
+                time.sleep(0.01)
                 continue
 
-            # 🔹 Detect + track objects
-            detections = detector.detect(frame)
+            # 🔹 Frame skipping: Only run AI every 3 frames
+            if frame_count % 3 == 0:
+                detections = detector.detect(frame)
 
-            # 🔹 Determine what is currently active (visible)
-            current_active = set()
-            for d in detections:
-                cat = stats.classify(d["label"])
-                current_active.add(cat)
-                # DEBUG PRINT: Check what label is seeing
-                print(f"DEBUG: Label='{d['label']}' -> Category='{cat}'")
-            
-            stats.set_active(current_active)
+                # 🔹 Determine what is currently active (visible)
+                current_active = set()
+                for d in detections:
+                    cat = stats.classify(d["label"])
+                    current_active.add(cat)
+                
+                stats.set_active(current_active)
+                stats.update(detections)
 
-            # 🔹 Update global statistics
-            stats.update(detections)
+            frame_count += 1
 
-            # 🔹 Handle alerts + draw boxes
+            # 🔹 Handle alerts + draw boxes (draw previous detections on skipped frames)
             for d in detections:
                 category = stats.classify(d["label"])
 
-                # 🚨 Trigger email alert if needed
-                alert_manager.handle_detection(d, category)
+                # 🚨 Trigger email alert if needed (only on new detection frames)
+                if frame_count % 3 == 1:
+                    alert_manager.handle_detection(d, category)
 
                 # 🎨 Draw bounding box
                 x1, y1, x2, y2 = d["bbox"]

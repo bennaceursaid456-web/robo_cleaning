@@ -5,8 +5,8 @@ from config import CONFIDENCE_THRESHOLD, ALLOWED_LABELS
 
 class YoloDetector:
     def __init__(self):
-        # Using Medium (m) model - significantly smarter than Nano/Small
-        self.model = YOLO("yolov8m.pt")
+        # Using Nano (n) model - fastest for real-time mobile/CPU performance
+        self.model = YOLO("yolov8n.pt")
 
     def detect(self, frame):
         # 🔥 TRACKING instead of simple detection
