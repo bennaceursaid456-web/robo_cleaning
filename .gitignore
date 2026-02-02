@@ -1,0 +1,21 @@
+# Dependency directories
+node_modules/
+.venv/
+.venv_64/
+__pycache__/
+
+# Weights (YOLOv8)
+*.pt
+
+# Environment files
+.env
+
+# Build outputs
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
